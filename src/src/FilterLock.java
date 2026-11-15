@@ -1,11 +1,11 @@
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
-public class filter_lock {
+public class FilterLock {
     private final AtomicIntegerArray level;
     private final AtomicIntegerArray victim;
     private final int n;
 
-    public filter_lock(int n) {
+    public FilterLock(int n) {
         this.n = n;
         this.level = new AtomicIntegerArray(n); // initialized to 0
         this.victim = new AtomicIntegerArray(n); // initialized to 0

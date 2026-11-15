@@ -1,12 +1,12 @@
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
-public class lamport_bakery_lock {
+public class LamportBakeryLock {
     private final AtomicBoolean[] flag;
     private final AtomicIntegerArray label;
     private final int n;
 
-    public lamport_bakery_lock(int n){
+    public LamportBakeryLock(int n){
         this.n = n;
         this.flag = new AtomicBoolean[n];
         for (int i = 0; i < n; i++) {

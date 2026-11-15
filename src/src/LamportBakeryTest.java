@@ -1,7 +1,7 @@
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.*;
 
-class filter_lock_test{
+class LamportBakeryTest {
 
     private static int count = 0;
     private static final AtomicInteger inCriticalSection = new AtomicInteger();
@@ -9,17 +9,18 @@ class filter_lock_test{
     static final int ITER = 100_000;
 
     public static void main(String[] args) throws InterruptedException {
+        System.out.println("Starting Lamport Bakery Lock mutual exclusion test!");
         // Test for 2 to 8 threads
-        System.out.println("Starting Filter Lock mutual exclusion test!");
         for (int n = 2; n <= 8; n++) {
             runMutualExclusionTest(n, true);
             runMutualExclusionTest(n, false);
         }
+        // Test for overtaking
         overtakeTest(8);
     }
 
     private static void runMutualExclusionTest(int n, boolean useLock) throws InterruptedException {
-        filter_lock lock = new filter_lock(n);
+        LamportBakeryLock lock = new LamportBakeryLock(n);
         count = 0;
         violation = false;
         Thread[] threads = new Thread[n];
@@ -55,7 +56,7 @@ class filter_lock_test{
 
     private static void overtakeTest(int n) throws InterruptedException {
         final int ITER = 20_000;
-        filter_lock lock = new filter_lock(n);
+        LamportBakeryLock lock = new LamportBakeryLock(n);
         AtomicLong clock = new AtomicLong();
         long[] stampLog = new long[n * ITER]; // arrival time of the thread at each CS entry
         int[] ownerLog = new int[n * ITER];   // which thread entered
@@ -82,30 +83,19 @@ class filter_lock_test{
         for (Thread t : threads) t.join();
 
         int[] maxPerThread = new int[n];
-        long[] sumPerThread = new long[n];
-        int[] freqPerThread = new int[n];
-        double[] avPerThread = new double[n];
         long total = 0;
-
         for (int p = 0; p < stampLog.length; p++) {
             int count = 0;
             for (int q = 0; q < p; q++) {
-                if (stampLog[q] > stampLog[p]) {
-                    count++;
-                }
+                if (stampLog[q] > stampLog[p]) count++;
             }
             total += count;
-            int tID = ownerLog[p];
-            maxPerThread[tID] = Math.max(maxPerThread[tID], count);
-            sumPerThread[tID] += count;
-            freqPerThread[tID] ++;
+            maxPerThread[ownerLog[p]] = Math.max(maxPerThread[ownerLog[p]], count);
         }
 
-        System.out.println("Starting Overtaking test for filter lock.");
+        System.out.println("Starting Overtaking test for lamport bakery lock.");
         System.out.println("Total overtake events: " + total);
         for (int i = 0; i < n; i++){
-            avPerThread[i] = (freqPerThread[i] > 0) ? (double) sumPerThread[i] / freqPerThread[i] : 0.0;
-            System.out.println("Thread " + i + ": mean number of times overtaken per lock() call = " + avPerThread[i]);
             System.out.println("Thread " + i + ": max times overtaken in one lock() call = " + maxPerThread[i]);
         }
     }
