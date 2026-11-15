@@ -1,3 +1,5 @@
+package ca.mcgill.ecse420.a2;
+
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class FilterLock {
